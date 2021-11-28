@@ -1,0 +1,220 @@
+     1                                  ;------------------------------------------------------------------------------
+     2                                  ; area.asm - единица компиляции, вбирающая функции вычисления периметра
+     3                                  ;------------------------------------------------------------------------------
+     4                                  
+     5                                  extern SPHERE
+     6                                  extern PARALLELEPIPED
+     7                                  extern TETRAHEDRON
+     8                                  
+     9                                  global AreaSphere
+    10                                  AreaSphere:
+    11                                  section .data
+    12 00000000 6F1283C0CA210940            .pi    dq  3.1415
+    13 00000008 0000000000000040            .two   dq  2.0
+    14                                  section .text
+    15 00000000 55                      push rbp
+    16 00000001 4889E5                  mov rbp, rsp
+    17                                  
+    18                                      ; В rdi адрес сферы
+    19 00000004 8B07                        mov eax, [rel rdi]
+    20 00000006 F20F2AD0                    cvtsi2sd   xmm2, eax
+    21 0000000A F20F10C2                    movsd xmm0, xmm2
+    22 0000000E F20F5905(00000000)          mulsd xmm0, [rel .pi]
+    23 00000016 F20F5905(08000000)          mulsd xmm0, [rel .two]
+    24                                  
+    25 0000001E C9                      leave
+    26 0000001F C3                      ret
+    27                                  
+    28                                  global AreaTetrahedron
+    29                                  AreaTetrahedron:
+    30                                  section .data
+    31                                      ; Множитель для площади правильного тетраэдра.
+    32 00000010 BC96900F7AB6FB3F            .h    dq  1.73205
+    33                                  section .text
+    34 00000020 55                      push rbp
+    35 00000021 4889E5                  mov rbp, rsp
+    36                                  
+    37                                      ; В rdi адрес тетраэдра
+    38 00000024 8B07                        mov eax, [rel rdi]
+    39 00000026 F20F2AD0                    cvtsi2sd   xmm2, eax
+    40 0000002A F20F10C2                    movsd xmm0, xmm2
+    41 0000002E F20F59C2                    mulsd xmm0, xmm2
+    42 00000032 F20F5905(10000000)          mulsd xmm0, [rel .h]
+    43                                  
+    44 0000003A C9                      leave
+    45 0000003B C3                      ret
+    46                                  
+    47                                  global AreaParallelepiped
+    48                                  AreaParallelepiped:
+    49                                  section .data
+    50 00000018 0000000000000000            .s1    dq  0.0
+    51 00000020 0000000000000000            .s2    dq  0.0
+    52 00000028 0000000000000040            .two   dq  2.0
+    53                                  section .text
+    54 0000003C 55                      push rbp
+    55 0000003D 4889E5                  mov rbp, rsp
+    56                                  
+    57                                      ; В rdi адрес сферы
+    58 00000040 8B07                        mov eax, [rel rdi]
+    59 00000042 F20F2AC0                    cvtsi2sd   xmm0, eax
+    60 00000046 8B4708                      mov eax, [rel rdi+8]
+    61 00000049 F20F2AD0                    cvtsi2sd   xmm2, eax
+    62 0000004D F20F59C2                    mulsd xmm0, xmm2
+    63 00000051 F20F1105(18000000)          movsd [rel .s1], xmm0
+    64                                      ; Вторая сторона
+    65 00000059 8B4704                      mov eax, [rel rdi+4]
+    66 0000005C F20F2AC0                    cvtsi2sd   xmm0, eax
+    67 00000060 8B4708                      mov eax, [rel rdi+8]
+    68 00000063 F20F2AD0                    cvtsi2sd   xmm2, eax
+    69 00000067 F20F59C2                    mulsd xmm0, xmm2
+    70 0000006B F20F1105(20000000)          movsd [rel .s2], xmm0
+    71                                      ; Третья сторона
+    72 00000073 8B07                        mov eax, [rel rdi]
+    73 00000075 F20F2AC0                    cvtsi2sd   xmm0, eax
+    74 00000079 8B4704                      mov eax, [rel rdi+4]
+    75 0000007C F20F2AD0                    cvtsi2sd   xmm2, eax
+    76 00000080 F20F59C2                    mulsd xmm0, xmm2
+    77                                      ; Сумма сторон и умножение на два
+    78 00000084 F20F1015(18000000)          movsd xmm2, [rel .s1]
+    79 0000008C F20F58C2                    addsd xmm0, xmm2
+    80 00000090 F20F1015(20000000)          movsd xmm2, [rel .s2]
+    81 00000098 F20F58C2                    addsd xmm0, xmm2
+    82 0000009C F20F1015(28000000)          movsd xmm2, [rel .two]
+    83 000000A4 F20F59C2                    mulsd xmm0, xmm2
+    84                                  
+    85 000000A8 C9                      leave
+    86 000000A9 C3                      ret
+    87                                  
+    88                                  
+    89                                  global AreaShape
+    90                                  AreaShape:
+    91                                  section .text
+    92 000000AA 55                      push rbp
+    93 000000AB 4889E5                  mov rbp, rsp
+    94                                  
+    95                                      ; В rdi адрес фигуры
+    96 000000AE 8B07                        mov eax, [rel rdi]
+    97 000000B0 3B05(00000000)              cmp eax, [rel SPHERE]
+    98 000000B6 7418                        je .sphereArea
+    99 000000B8 3B05(00000000)              cmp eax, [rel TETRAHEDRON]
+   100 000000BE 741B                        je .tetrArea
+   101 000000C0 3B05(00000000)              cmp eax, [rel PARALLELEPIPED]
+   102 000000C6 741E                        je .parArea
+   103 000000C8 31C0                        xor eax, eax
+   104 000000CA F20F2AC0                    cvtsi2sd    xmm0, eax
+   105 000000CE EB1F                        jmp     .return
+   106                                  .sphereArea:
+   107                                      ; Вычисление площади сферы
+   108 000000D0 4883C704                    add     rdi, 4
+   109 000000D4 E827FFFFFF                  call    AreaSphere
+   110 000000D9 EB14                        jmp     .return
+   111                                  .tetrArea:
+   112                                      ; Вычисление площади тетраэдра
+   113 000000DB 4883C704                    add     rdi, 4
+   114 000000DF E83CFFFFFF                  call    AreaTetrahedron
+   115 000000E4 EB09                        jmp     .return
+   116                                  .parArea:
+   117                                      ; Вычисление площади параллелепипеда
+   118 000000E6 4883C704                    add     rdi, 4
+   119 000000EA E84DFFFFFF                  call    AreaParallelepiped
+   120                                  .return:
+   121 000000EF C9                      leave
+   122 000000F0 C3                      ret
+   123                                  
+   124                                  
+   125                                  global AreaAverageContainer
+   126                                  AreaAverageContainer:
+   127                                  section .data
+   128 00000030 0000000000000000            .sum    dq  0.0
+   129                                  section .text
+   130 000000F1 55                      push rbp
+   131 000000F2 4889E5                  mov rbp, rsp
+   132                                  
+   133                                      ; В rdi адрес начала контейнера
+   134 000000F5 4889F3                      mov rbx, rsi            ; число фигур
+   135 000000F8 4831C9                      xor rcx, rcx            ; счетчик фигур
+   136 000000FB F20F100D(30000000)          movsd xmm1, [rel .sum]      ; перенос накопителя суммы в регистр 1
+   137                                  .loop:
+   138 00000103 4839D9                      cmp rcx, rbx            ; проверка на окончание цикла
+   139 00000106 7D18                        jge .return             ; Перебрали все фигуры
+   140                                  
+   141 00000108 4989FA                      mov r10, rdi            ; сохранение начала фигуры
+   142 0000010B E89AFFFFFF                  call AreaShape          ; Получение периметра первой фигуры
+   143 00000110 F20F58C8                    addsd xmm1, xmm0        ; накопление суммы
+   144                                      
+   145 00000114 48FFC1                      inc rcx                 ; индекс следующей фигуры
+   146 00000117 4983C210                    add r10, 16             ; адрес следующей фигуры
+   147 0000011B 4C89D7                      mov rdi, r10            ; восстановление для передачи параметра
+   148 0000011E EBE3                        jmp .loop
+   149                                  .return:
+   150 00000120 F20F10C1                    movsd xmm0, xmm1
+   151 00000124 F2480F2ACB                  cvtsi2sd xmm1, rbx
+   152 00000129 F20F5EC1                    divsd xmm0, xmm1
+   153 0000012D C9                      leave
+   154 0000012E C3                      ret
+   155                                  
+   156                                  global DeleteLessAverageContainer
+   157                                  DeleteLessAverageContainer:
+   158                                  section .data
+   159 00000038 0000000000000000            .sum    dq  0.0
+   160                                  section .text
+   161 0000012F 55                      push rbp
+   162 00000130 4889E5                  mov rbp, rsp
+   163                                  
+   164                                      ; В rdi адрес начала контейнера
+   165 00000133 4889F3                      mov rbx, rsi            ; число фигур
+   166 00000136 4D31ED                      xor r13, r13            ; счетчик оставленных фигур
+   167 00000139 4831C9                      xor rcx, rcx            ; счетчик фигур
+   168 0000013C F20F100D(38000000)          movsd xmm1, [rel .sum]      ; перенос накопителя суммы в регистр 1
+   169 00000144 4989FB                      mov r11, rdi            ; сохранение начала первой фигуры
+   170 00000147 4989FC                      mov r12, rdi            ; сохранение начала последней сохранённой фигуры
+   171                                  .loop:
+   172 0000014A 4839D9                      cmp rcx, rbx            ; проверка на окончание цикла
+   173 0000014D 7D18                        jge .delete             ; Перебрали все фигуры
+   174                                  
+   175 0000014F 4989FA                      mov r10, rdi            ; сохранение начала фигуры
+   176 00000152 E853FFFFFF                  call AreaShape          ; Получение периметра первой фигуры
+   177 00000157 F20F58C8                    addsd xmm1, xmm0        ; накопление суммы
+   178                                      
+   179 0000015B 48FFC1                      inc rcx                 ; индекс следующей фигуры
+   180 0000015E 4983C210                    add r10, 16             ; адрес следующей фигуры
+   181 00000162 4C89D7                      mov rdi, r10            ; восстановление для передачи параметра
+   182 00000165 EBE3                        jmp .loop
+   183                                  .delete:
+   184 00000167 F20F10C1                    movsd xmm0, xmm1
+   185 0000016B F2480F2ACB                  cvtsi2sd xmm1, rbx
+   186 00000170 F20F5EC1                    divsd xmm0, xmm1
+   187 00000174 F20F10C8                    movsd xmm1, xmm0
+   188                                      ; xmm1 хранит среднюю площадь.
+   189 00000178 4831C9                      xor rcx, rcx
+   190 0000017B 4C89DF                      mov rdi, r11
+   191                                  .loop2:
+   192 0000017E 4839D9                      cmp rcx, rbx            ; проверка на окончание цикла
+   193 00000181 7D42                        jge .return             ; Перебрали все фигуры
+   194                                  
+   195 00000183 4989FA                      mov r10, rdi            ; сохранение начала фигуры
+   196 00000186 E81FFFFFFF                  call AreaShape          ; Получение периметра первой фигуры
+   197 0000018B 660F2FC1                    comisd xmm0, xmm1
+   198 0000018F 7228                        jb .removeShape
+   199 00000191 49FFC5                      inc r13
+   200 00000194 4C89E6                      mov rsi, r12
+   201                                      ; move to last free spot.
+   202 00000197 498B3A                      mov rdi, [rel r10]
+   203 0000019A 48893E                      mov [rel rsi], rdi
+   204 0000019D 498B7A04                    mov rdi, [rel r10+4]
+   205 000001A1 48897E04                    mov [rel rsi+4], rdi
+   206 000001A5 498B7A08                    mov rdi, [rel r10+8]
+   207 000001A9 48897E08                    mov [rel rsi+8], rdi
+   208 000001AD 498B7A0C                    mov rdi, [rel r10+12]
+   209 000001B1 48897E0C                    mov [rel rsi+12], rdi
+   210                                      
+   211 000001B5 4983C410                    add r12, 16
+   212                                  .removeShape:
+   213 000001B9 48FFC1                      inc rcx                 ; индекс следующей фигуры
+   214 000001BC 4983C210                    add r10, 16             ; адрес следующей фигуры
+   215 000001C0 4C89D7                      mov rdi, r10            ; восстановление для передачи параметра
+   216 000001C3 EBB9                        jmp .loop2
+   217                                  .return:
+   218 000001C5 4C89E8                      mov rax, r13
+   219 000001C8 C9                      leave
+   220 000001C9 C3                      ret

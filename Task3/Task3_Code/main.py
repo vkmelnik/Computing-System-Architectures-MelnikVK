@@ -67,7 +67,6 @@ def main(argv):
         print(e.message)
 
 
-
 if __name__ == '__main__':
     argv = sys.argv
     main(argv[1:])

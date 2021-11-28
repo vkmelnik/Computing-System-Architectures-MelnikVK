@@ -1,0 +1,12 @@
+Filled container:
+Container contains 10 elements.
+0: It is Sphere: r = 0. Area = 0
+1: It is Parallelepiped: a = 0, b = 5, c = 0. Area = 0
+2: It is Tetrahedron: a = 0. Area = 0
+3: It is Tetrahedron: a = 0. Area = 0
+4: It is Tetrahedron: a = 0. Area = 0
+5: It is Tetrahedron: a = 0. Area = 0
+6: It is Sphere: r = 6. Area = 37.698
+7: It is Parallelepiped: a = 0, b = 5, c = 0. Area = 0
+8: It is Tetrahedron: a = 0. Area = 0
+9: It is Parallelepiped: a = 0, b = 2, c = 0. Area = 0

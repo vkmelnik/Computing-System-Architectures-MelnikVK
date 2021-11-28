@@ -1,0 +1,5 @@
+Filled container:
+Container contains 3 elements.
+0: It is Sphere: r = 1. Area = 6.283
+1: It is Sphere: r = 2. Area = 12.566
+2: It is Parallelepiped: a = 2, b = 10, c = 0. Area = 40
